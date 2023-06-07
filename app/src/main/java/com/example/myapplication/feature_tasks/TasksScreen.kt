@@ -34,10 +34,12 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.myapplication.MainActivity
+import com.example.myapplication.R
 import com.example.myapplication.UserManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -100,10 +102,16 @@ fun NavigationBar(
             Icon(Icons.Default.ArrowBack, contentDescription = "Кнопка 1")
         }
         IconButton(onClick = onButton2Click) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Кнопка 2")
+            Icon(
+                painter = painterResource(R.drawable.taskicon),
+                contentDescription = "Кнопка 2"
+            )
         }
         IconButton(onClick = onButton3Click) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Кнопка 3")
+            Icon(
+                painter = painterResource(R.drawable.messageicon),
+                contentDescription = "Кнопка 3"
+            )
         }
     }
 }
@@ -123,17 +131,7 @@ fun TasksPage(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = "Задачи",
-                        color = Color(0xFF717379)
-                    )
-                },
-                modifier = Modifier
-                    .height(56.dp)
-                    .padding(horizontal = 16.dp)
-                    .background(Color.Black)
-            )
+                title = { Text(text = "Задачи") },)
         },
         bottomBar = {
             NavigationBar(

@@ -23,6 +23,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.myapplication.feature_messanger.ChatsScreen
+import com.example.myapplication.feature_messanger.MessagesScreen
 import com.example.myapplication.feature_tasks.AdminTasksPage
 import com.example.myapplication.feature_tasks.TaskDescriptionScreen
 import com.example.myapplication.feature_tasks.TaskForm
@@ -60,6 +61,9 @@ fun MyApp() {
         composable("create_tasks") {
             TaskForm(navController)
         }
+        composable("chats"){
+            ChatsScreen(navController)
+        }
         composable(
             "taskDescription/{taskId}",
             arguments = listOf(navArgument("taskId") { type = NavType.IntType })
@@ -67,8 +71,12 @@ fun MyApp() {
             val taskId = backStackEntry.arguments?.getInt("taskId")
             taskId?.let { TaskDescriptionScreen(it, navController) }
         }
-        composable("chats"){
-            ChatsScreen(navController)
+        composable(
+            "allMessages/{receiver_Id}",
+            arguments = listOf(navArgument("receiver_Id") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val receiver_Id = backStackEntry.arguments?.getInt("receiver_Id")
+            receiver_Id?.let { MessagesScreen(it, navController) }
         }
     }
 }
