@@ -22,6 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.myapplication.feature_messanger.ChatsScreen
 import com.example.myapplication.feature_tasks.AdminTasksPage
 import com.example.myapplication.feature_tasks.TaskDescriptionScreen
 import com.example.myapplication.feature_tasks.TaskForm
@@ -30,6 +31,10 @@ import com.example.myapplication.ui.theme.MyApplicationTheme
 
 
 class MainActivity : ComponentActivity() {
+    object ApiConfig {
+        const val BASE_URL = "http://192.168.1.49:8080/"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -61,6 +66,9 @@ fun MyApp() {
         ) { backStackEntry ->
             val taskId = backStackEntry.arguments?.getInt("taskId")
             taskId?.let { TaskDescriptionScreen(it, navController) }
+        }
+        composable("chats"){
+            ChatsScreen(navController)
         }
     }
 }

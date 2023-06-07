@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.myapplication.MainActivity
 import com.example.myapplication.UserManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +50,7 @@ data class CreateTaskData(
 
 private fun sendTaskData(taskData: CreateTaskData) {
     GlobalScope.launch(Dispatchers.IO) {
-        val url = URL("http://192.168.1.47:8080/tasks/createTask")
+        val url = URL(MainActivity.ApiConfig.BASE_URL + "tasks/createTask")
         val connection = url.openConnection() as HttpURLConnection
         connection.requestMethod = "POST"
         connection.setRequestProperty("Content-Type", "application/json")

@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.myapplication.MainActivity
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -87,7 +88,7 @@ fun TaskDescriptionScreen(uid: Int, navController: NavController) {
         val requestBody =
             json.toString().toRequestBody("application/json".toMediaTypeOrNull())
         val request = Request.Builder()
-            .url("http://192.168.1.47:8080/tasks/getForTaskUid")
+            .url(MainActivity.ApiConfig.BASE_URL + "tasks/getForTaskUid")
             .post(requestBody)
             .build()
 
@@ -272,7 +273,7 @@ private fun updateCompleteDate(uid: Int, context: Context) {
     val requestBody =
         json.toString().toRequestBody("application/json".toMediaTypeOrNull())
     val request = Request.Builder()
-        .url("http://192.168.1.47:8080/tasks/updateCompleteDate")
+        .url(MainActivity.ApiConfig.BASE_URL + "tasks/updateCompleteDate")
         .post(requestBody)
         .build()
 

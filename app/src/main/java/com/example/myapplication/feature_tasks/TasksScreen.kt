@@ -2,42 +2,42 @@ package com.example.myapplication.feature_tasks
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.myapplication.MainActivity
 import com.example.myapplication.UserManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -75,85 +75,135 @@ private fun navigateToTaskDescription(navController: NavController, taskId: Int)
     navController.navigate("taskDescription/$taskId")
 }
 
+private fun navigateToChats(navController: NavController) {
+    navController.navigate("chats")
+}
+
 enum class TaskStatus {
     COMPLETED, IN_PROGRESS, PENDING
+}
+
+@Composable
+fun NavigationBar(
+    navController: NavController,
+    onButton1Click: () -> Unit,
+    onButton2Click: () -> Unit,
+    onButton3Click: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        IconButton(onClick = onButton1Click) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Кнопка 1")
+        }
+        IconButton(onClick = onButton2Click) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Кнопка 2")
+        }
+        IconButton(onClick = onButton3Click) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Кнопка 3")
+        }
+    }
 }
 
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TasksPage(navController: NavController) {
-    // Состояния фильтров
-    val statusFilter = mutableStateOf<TaskStatus?>(null)
-    val deadlineFilter = mutableStateOf<String?>(null)
-    var expanded by remember { mutableStateOf(false) }
-
     val tasks = remember { mutableStateListOf<Task>() }
-    val isRequestCompleted = remember { mutableStateOf(false) } // Флаг выполнения запроса
+    val isRequestCompleted = remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         if (!isRequestCompleted.value) {
             fetchTasksFromServer(tasks, isRequestCompleted)
         }
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Мои задачи") },
-                modifier = Modifier.background(color = Color(0xFF71AEB2))
+                title = {
+                    Text(
+                        text = "Задачи",
+                        color = Color(0xFF717379)
+                    )
+                },
+                modifier = Modifier
+                    .height(56.dp)
+                    .padding(horizontal = 16.dp)
+                    .background(Color.Black)
+            )
+        },
+        bottomBar = {
+            NavigationBar(
+                navController = navController,
+                onButton1Click = {},
+                onButton2Click = {},
+                onButton3Click = { navigateToChats(navController) }
             )
         },
         content = { paddingValues ->
-            Surface(color = Color(0xFFC7F1E8)) {
-                Column(
+            Surface(color = Color(0xFF323034)) {
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Column {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color(0xFF71AEB2))
-                        ) {
-                            items(tasks.filter { task ->
-                                val statusFilterValue = statusFilter.value
-                                val deadlineFilterValue = deadlineFilter.value
-
-                                val matchesStatus = statusFilterValue?.let {
-                                    task.status.equals(it.name, ignoreCase = true)
-                                } ?: true
-
-                                val matchesDeadline = deadlineFilterValue?.let {
-                                    task.deadlines.toLowerCase().contains(it.toLowerCase())
-                                } ?: true
-
-                                matchesStatus && matchesDeadline
-                            }) { task ->
-                                Card(
-                                    modifier = Modifier
-                                        .padding(8.dp)
-                                        .background(Color(0xFF71AEB2)),
-                                    shape = RoundedCornerShape(8.dp),
-                                    onClick = {
-                                        navigateToTaskDescription(navController, task.uid)
-                                    }
-                                ) {
-                                    Column(modifier = Modifier.padding(16.dp)) {
-                                        Text(text = "Заголовок: ${task.header}")
-                                        Text(
-                                            text = "Приоритет: ${task.priority}",
-                                            color = PriorityColor(task.priority)
-                                        )
-                                        Text(text = "Создатель: ${task.creator}")
-                                        Text(text = "Роль создателя: ${task.creatorRole}")
-                                        Text(text = "Исполнитель: ${task.executor}")
-                                        Text(text = "Роль исполнителя: ${task.executorRole}")
-                                        Text(text = "Описание: ${task.description}")
-                                        Text(text = "Дедлайн: ${task.deadlines}")
-                                        Text(text = "Статус: ${task.status}")
-                                    }
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFF29272B))
+                    ) {
+                        items(tasks) { task ->
+                            Card(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .background(Color(0xFF29272B)),
+                                shape = RoundedCornerShape(8.dp),
+                                onClick = {
+                                    navigateToTaskDescription(navController, task.uid)
+                                }
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = task.header,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "Приоритет: ${task.priority}",
+                                        color = PriorityColor(task.priority)
+                                    )
+                                    Text(
+                                        text = "Создатель: ${task.creator}",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        text = "Роль создателя: ${task.creatorRole}",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        text = "Исполнитель: ${task.executor}",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        text = "Роль исполнителя: ${task.executorRole}",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        text = "Описание: ${task.description}",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        text = "Дедлайн: ${task.deadlines}",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        text = "Статус: ${task.status}",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
                                 }
                             }
                         }
@@ -164,7 +214,11 @@ fun TasksPage(navController: NavController) {
     )
 }
 
-private suspend fun fetchTasksFromServer(tasks: SnapshotStateList<Task>, isRequestCompleted: MutableState<Boolean>) {
+
+private suspend fun fetchTasksFromServer(
+    tasks: SnapshotStateList<Task>,
+    isRequestCompleted: MutableState<Boolean>
+) {
     val uid = UserManager.user?.uid // Замените на фактический UID пользователя
     val json = JSONObject().apply {
         put("uid", uid)
@@ -172,7 +226,7 @@ private suspend fun fetchTasksFromServer(tasks: SnapshotStateList<Task>, isReque
     val requestBody =
         json.toString().toRequestBody("application/json".toMediaTypeOrNull())
     val request = Request.Builder()
-        .url("http://192.168.1.47:8080/tasks/get")
+        .url(MainActivity.ApiConfig.BASE_URL + "tasks/get")
         .post(requestBody)
         .build()
 

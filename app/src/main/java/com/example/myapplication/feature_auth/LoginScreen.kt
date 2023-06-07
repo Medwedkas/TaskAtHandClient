@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,12 +29,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -64,7 +67,7 @@ fun LoginPage(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color(0xFFC7F1E8)),
+            .background(color = Color(0xFF29272B)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -73,7 +76,7 @@ fun LoginPage(navController: NavController) {
                 .padding(horizontal = 10.dp, vertical = 1.dp)
         ) {
             Image(
-                painter = painterResource(R.mipmap.logo), // Путь к ресурсу с картинкой
+                painter = painterResource(R.drawable.ic_launcher_foreground), // Путь к ресурсу с картинкой
                 contentDescription = "Logo",
                 modifier = Modifier
                     .size(260.dp) // Размер квадратной картинки
@@ -89,21 +92,19 @@ fun LoginPage(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.Start)
-                .background(color = Color(0xFF71AEB2))
+                .background(color = Color(0xFF3C3A3F))
                 .padding(start = 50.dp),
             fontSize = 25.sp,
-            color = Color.White,
+            color = Color(0xFF717379),
             style = TextStyle(fontStyle = FontStyle.Normal)
         )
 
         Surface(
-            shape = RoundedCornerShape(8.dp),
             modifier = Modifier
                 .height(75.dp)
                 .width(350.dp)
                 .padding(horizontal = 16.dp, vertical = 20.dp)
-                .background(color = Color.White)
-                .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(8.dp))
+                .background(color = Color(0xFF717379))
         ) {
             BasicTextField(
                 value = number.value,
@@ -111,10 +112,13 @@ fun LoginPage(navController: NavController) {
                 textStyle = TextStyle.Default,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
+                    .background(color = Color(0xFFfafaf9)),
                 singleLine = true
             )
         }
+
+
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -123,21 +127,19 @@ fun LoginPage(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.Start)
-                .background(color = Color(0xFF71AEB2))
+                .background(color = Color(0xFF3C3A3F))
                 .padding(start = 50.dp),
             fontSize = 25.sp,
-            color = Color.White,
+            color = Color(0xFF717379),
             style = TextStyle(fontStyle = FontStyle.Normal)
         )
 
         Surface(
-            shape = RoundedCornerShape(8.dp),
             modifier = Modifier
                 .height(75.dp)
                 .width(350.dp)
                 .padding(horizontal = 16.dp, vertical = 20.dp)
                 .background(color = Color.White)
-                .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(8.dp))
         ) {
             BasicTextField(
                 value = password.value,
@@ -149,6 +151,8 @@ fun LoginPage(navController: NavController) {
                 singleLine = true
             )
         }
+
+
         Spacer(modifier = Modifier.height(10.dp))
 
         Button(
@@ -165,12 +169,13 @@ fun LoginPage(navController: NavController) {
                 .width(300.dp)
                 .height(60.dp),
             colors = ButtonDefaults.buttonColors(
-                Color(0xFF71AEB2) // Цвет фона кнопки
+                Color(0xFF323034) // Цвет фона кнопки
             ),
             contentPadding = PaddingValues(16.dp)
         ) {
             Text(
                 text = "Войти",
+                color = Color(0xFF717379),
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
@@ -184,7 +189,7 @@ private suspend fun performLogin(number: String, password: String, navController
     val mediaType = "application/json".toMediaType()
     val requestBody = Json.encodeToString(loginRequest)
     val request = Request.Builder()
-        .url("http://192.168.1.47:8080/login")
+        .url(MainActivity.ApiConfig.BASE_URL + "login")
         .post(requestBody.toRequestBody(mediaType))
         .build()
 

@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.myapplication.MainActivity
 import com.example.myapplication.UserManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -185,7 +186,7 @@ private suspend fun fetchTaskFromServer(
     val requestBody =
         json.toString().toRequestBody("application/json".toMediaTypeOrNull())
     val request = Request.Builder()
-        .url("http://192.168.1.47:8080/tasks/getListAllExecutors")
+        .url(MainActivity.ApiConfig.BASE_URL + "tasks/getListAllExecutors")
         .post(requestBody)
         .build()
 
