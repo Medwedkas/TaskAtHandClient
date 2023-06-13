@@ -18,16 +18,24 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,17 +49,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.myapplication.MainActivity
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlinx.serialization.Serializable
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.URL
 
 data class TaskData(
     val uid: Int,
@@ -66,6 +83,15 @@ data class TaskData(
     val priority: String
 )
 
+@Serializable
+data class TaskCreatorResponse(
+    val creators: List<TaskCreator>
+)
+@Serializable
+data class TaskCreator(
+    val creator: Int
+)
+
 @Composable
 fun priorityColor(priority: String): Color {
     return when (priority) {
@@ -77,10 +103,13 @@ fun priorityColor(priority: String): Color {
 }
 
 // Измените функцию TaskDescriptionScreen
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskDescriptionScreen(uid: Int, navController: NavController) {
     var taskList by remember { mutableStateOf<List<Task>>(emptyList()) }
     val context = LocalContext.current
+    var creator: Int? by remember { mutableStateOf(null) } // Добавлено новое состояние для хранения значения создателя
+
     LaunchedEffect(uid) {
         val json = JSONObject().apply {
             put("uid", uid)
@@ -99,7 +128,7 @@ fun TaskDescriptionScreen(uid: Int, navController: NavController) {
 
         if (response.isSuccessful) {
             val responseBody = response.body?.string()
-            val jsonArray = JSONArray(responseBody) // Получить JSONArray вместо JSONObject
+            val jsonArray = JSONArray(responseBody)
             val tasks = mutableListOf<Task>()
 
             for (i in 0 until jsonArray.length()) {
@@ -118,149 +147,206 @@ fun TaskDescriptionScreen(uid: Int, navController: NavController) {
                 )
                 tasks.add(task)
             }
-
             taskList = tasks
-        } else {
-            val errorMessage = response.message
-            showToast(context, "Error: $errorMessage")
+
         }
     }
 
-    Surface(
+    Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .fillMaxHeight()
-            .fillMaxWidth()
-            .background(Color(0xFFC7F1E8))
-            .verticalScroll(rememberScrollState()),
-        color = Color(0xFFC7F1E8),
-        shape = RoundedCornerShape(5.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .background(Color(0xFF71AEB2)),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Описание задачи",
-                style = MaterialTheme.typography.headlineLarge,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 16.dp)
+            .background(Color(0xFF323034)),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(text = "Описание задачи")
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                }
             )
-
-            for (task in taskList) {
-                Column(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        "Заголовок: ${task.header}", modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Start)
-                            .background(color = Color(0xFF71AEB2)),
-                        fontSize = 20.sp,
-                        color = Color.White,
-                        style = TextStyle(fontStyle = FontStyle.Normal)
-                    )
-                    Text(
-                        "От кого: ${task.creator}", modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Start)
-                            .background(color = Color(0xFF71AEB2)),
-                        fontSize = 20.sp,
-                        color = Color.White,
-                        style = TextStyle(fontStyle = FontStyle.Normal)
-                    )
-                    Text(
-                        "Должность: ${task.creatorRole}", modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Start)
-                            .background(color = Color(0xFF71AEB2)),
-                        fontSize = 20.sp,
-                        color = Color.White,
-                        style = TextStyle(fontStyle = FontStyle.Normal)
-                    )
-                    Text(
-                        "Исполнитель: ${task.executor}", modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Start)
-                            .background(color = Color(0xFF71AEB2)),
-                        fontSize = 20.sp,
-                        color = Color.White,
-                        style = TextStyle(fontStyle = FontStyle.Normal)
-                    )
-                    Text(
-                        "Должность: ${task.executorRole}", modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Start)
-                            .background(color = Color(0xFF71AEB2)),
-                        fontSize = 20.sp,
-                        color = Color.White,
-                        style = TextStyle(fontStyle = FontStyle.Normal)
-                    )
-                    Text(
-                        "Описание задачи: ${task.description}", modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Start)
-                            .background(color = Color(0xFF71AEB2)),
-                        fontSize = 20.sp,
-                        color = Color.White,
-                        style = TextStyle(fontStyle = FontStyle.Normal)
-                    )
-                    Text(
-                        "Срок выполнения(включительно): ${task.deadlines}", modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Start)
-                            .background(color = Color(0xFF71AEB2)),
-                        fontSize = 20.sp,
-                        color = Color.White,
-                        style = TextStyle(fontStyle = FontStyle.Normal)
-                    )
-                    Text(
-                        "Статус задачи: ${task.status}", modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Start)
-                            .background(color = Color(0xFF71AEB2)),
-                        fontSize = 20.sp,
-                        color = Color.White,
-                        style = TextStyle(fontStyle = FontStyle.Normal)
-                    )
-                    Text(
-                        text = "Приоритет задачи: ${task.priority}",
+        },
+        content = { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .background(Color(0xFF3C3A3F)),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                for (task in taskList) {
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Start)
-                            .background(color = Color(0xFF71AEB2)),
-                        fontSize = 20.sp,
-                        style = TextStyle(fontStyle = FontStyle.Normal),
-                        color = priorityColor(task.priority)
-                    )
-                    Button(
-                        onClick = {
-                            updateCompleteDate(task.uid, context)
-                            navController.popBackStack()
-                        },
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .width(300.dp)
-                            .height(60.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            Color(0xFFC7F1E8) // Цвет фона кнопки
-                        ),
-                        contentPadding = PaddingValues(16.dp)
+                            .padding(8.dp)
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Text(text = "Выполнить", color = Color.Black)
+                        Text(
+                            "Заголовок: ${task.header}",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Start)
+                                .background(color = Color(0xFF323034)),
+                            fontSize = 20.sp,
+                            color = Color.White,
+                            style = TextStyle(fontStyle = FontStyle.Normal)
+                        )
+                        Text(
+                            "От кого: ${task.creator}",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Start)
+                                .background(color = Color(0xFF323034)),
+                            fontSize = 20.sp,
+                            color = Color.White,
+                            style = TextStyle(fontStyle = FontStyle.Normal)
+                        )
+                        Text(
+                            "Должность: ${task.creatorRole}",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Start)
+                                .background(color = Color(0xFF323034)),
+                            fontSize = 20.sp,
+                            color = Color.White,
+                            style = TextStyle(fontStyle = FontStyle.Normal)
+                        )
+                        Text(
+                            "Исполнитель: ${task.executor}",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Start)
+                                .background(color = Color(0xFF323034)),
+                            fontSize = 20.sp,
+                            color = Color.White,
+                            style = TextStyle(fontStyle = FontStyle.Normal)
+                        )
+                        Text(
+                            "Должность: ${task.executorRole}",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Start)
+                                .background(color = Color(0xFF323034)),
+                            fontSize = 20.sp,
+                            color = Color.White,
+                            style = TextStyle(fontStyle = FontStyle.Normal)
+                        )
+                        Text(
+                            "Описание задачи: ${task.description}",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Start)
+                                .background(color = Color(0xFF323034)),
+                            fontSize = 20.sp,
+                            color = Color.White,
+                            style = TextStyle(fontStyle = FontStyle.Normal)
+                        )
+                        Text(
+                            "Срок выполнения(включительно): ${task.deadlines}",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Start)
+                                .background(color = Color(0xFF323034)),
+                            fontSize = 20.sp,
+                            color = Color.White,
+                            style = TextStyle(fontStyle = FontStyle.Normal)
+                        )
+                        Text(
+                            "Статус задачи: ${task.status}",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Start)
+                                .background(color = Color(0xFF323034)),
+                            fontSize = 20.sp,
+                            color = Color.White,
+                            style = TextStyle(fontStyle = FontStyle.Normal)
+                        )
+                        Text(
+                            text = "Приоритет задачи: ${task.priority}",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Start)
+                                .background(color = Color(0xFF323034)),
+                            fontSize = 20.sp,
+                            style = TextStyle(fontStyle = FontStyle.Normal),
+                            color = priorityColor(task.priority)
+                        )
+                        Button(
+                            onClick = {
+                                updateCompleteDate(task.uid, context)
+                                navController.popBackStack()
+                            },
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .width(300.dp)
+                                .height(60.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                Color(0xFF323034),
+                            ),
+                            contentPadding = PaddingValues(16.dp)
+                        ) {
+                            Text(text = "Выполнить")
+                        }
+                        Button(
+                            onClick = {
+                                val json = JSONObject().apply {
+                                    put("uid", task.uid)
+                                }
+                                val requestBody =
+                                    json.toString().toRequestBody("application/json".toMediaTypeOrNull())
+                                val request = Request.Builder()
+                                    .url(MainActivity.ApiConfig.BASE_URL + "tasks/getTaskCreator")
+                                    .post(requestBody)
+                                    .build()
+
+                                val client = OkHttpClient()
+                                GlobalScope.launch(Dispatchers.IO) {
+                                    try {
+                                        val response = withContext(Dispatchers.IO) {
+                                            client.newCall(request).execute()
+                                        }
+
+                                        if (response.isSuccessful) {
+                                            val responseBody = response.body?.string()
+                                            val taskCreatorResponse = Json.decodeFromString<List<TaskCreator>>(responseBody!!)
+                                            val creator = taskCreatorResponse.firstOrNull()?.creator
+
+
+                                            withContext(Dispatchers.Main) {
+                                                navController.navigate("allMessages/$creator")
+                                            }
+                                        } else {
+                                            val errorMessage = response.message
+                                            println(response.body.toString())
+                                        }
+                                    } catch (e: Exception) {
+                                        // Обработка ошибки, если запрос не удался
+                                        e.printStackTrace()
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .width(300.dp)
+                                .height(60.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                Color(0xFF323034),
+                            ),
+                            contentPadding = PaddingValues(16.dp)
+                        ) {
+                            Text(text = "Вопрос инициатору")
+                        }
                     }
                 }
             }
         }
-    }
+    )
 }
+
+
 
 private fun showToast(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
