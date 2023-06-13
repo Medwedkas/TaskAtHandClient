@@ -195,8 +195,6 @@ fun AdminTasksPage(navController: NavController) {
     )
 }
 
-
-
 private suspend fun fetchTaskFromServer(
     tasks: SnapshotStateList<Task>,
     isRequestCompleted: MutableState<Boolean>

@@ -216,11 +216,18 @@ private suspend fun performLogin(number: String, password: String, navController
                     Toast.LENGTH_SHORT
                 ).show()
                 withContext(Dispatchers.Main) {
-                    if (UserManager.user!!.role == 1 || UserManager.user!!.role == 2) {
-                        navController.navigate("admin_tasks")
-                    } else {
-                        navController.navigate("task")
+                    when (UserManager.user!!.role) {
+                        1, 2 -> {
+                            navController.navigate("admin_tasks")
+                        }
+                        5 -> {
+                            navController.navigate("inspector_tasks")
+                        }
+                        else -> {
+                            navController.navigate("task")
+                        }
                     }
+
 
                 }
             } else {

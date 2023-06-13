@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -204,10 +205,17 @@ fun ChatsScreen(navController: NavController) {
         topBar = {
             TopAppBar(
                 title = { Text(text = "Сообщения") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
                 actions = {
+
                     IconButton(onClick = { userExpanded = true }) {
                         Icon(imageVector = Icons.Default.Add, contentDescription = "Добавить")
                     }
+
 
                     DropdownMenu(
                         expanded = userExpanded,
@@ -246,18 +254,6 @@ fun ChatsScreen(navController: NavController) {
                 }
 
             )
-        },
-        bottomBar = {
-            Surface(
-                color = Color(0xFF3C3A3F),
-            ) {
-                NavigationBar(
-                    navController = navController,
-                    onButton1Click = {},
-                    onButton2Click = { navigateToTasks(navController) },
-                    onButton3Click = {}
-                )
-            }
         },
         content = {
             LazyColumn(

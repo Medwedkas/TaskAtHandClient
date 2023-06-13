@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.myapplication.MainActivity
@@ -50,26 +48,51 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 
-data class Task(
-    val uid: Int,
-    val header: String,
-    val priority: String,
-    val creator: String,
-    val creatorRole: String,
-    val executor: String,
-    val executorRole: String,
-    val description: String,
-    val deadlines: String,
-    val status: String
-)
+private suspend fun fetchTasksFromServer(
+    tasks: SnapshotStateList<Task>,
+    isRequestCompleted: MutableState<Boolean>
+) {
+    val uid = UserManager.user?.uid // Замените на фактический UID пользователя
+    val json = JSONObject().apply {
+        put("uid", uid)
+    }
+    val requestBody =
+        json.toString().toRequestBody("application/json".toMediaTypeOrNull())
+    val request = Request.Builder()
+        .url(MainActivity.ApiConfig.BASE_URL + "tasks/get")
+        .post(requestBody)
+        .build()
 
-@Composable
-fun PriorityColor(priority: String): Color {
-    return when (priority) {
-        "Высокий" -> Color.Red
-        "Средний" -> Color.Yellow
-        "Низкий" -> Color.Green
-        else -> Color.Black
+    val client = OkHttpClient()
+    val response = withContext(Dispatchers.IO) {
+        client.newCall(request).execute()
+    }
+
+    if (response.isSuccessful) {
+        val responseBody = response.body?.string()
+        val jsonArray = JSONArray(responseBody)
+
+        for (i in 0 until jsonArray.length()) {
+            val jsonObject = jsonArray.getJSONObject(i)
+            val task = Task(
+                header = jsonObject.getString("header"),
+                priority = jsonObject.getString("priority"),
+                creator = jsonObject.getString("creator"),
+                creatorRole = jsonObject.getString("creatorRole"),
+                executor = jsonObject.getString("executor"),
+                executorRole = jsonObject.getString("executorRole"),
+                description = jsonObject.getString("description"),
+                deadlines = jsonObject.getString("deadlines"),
+                status = jsonObject.getString("status"),
+                uid = jsonObject.getInt("uid")
+            )
+            tasks.add(task)
+        }
+
+        isRequestCompleted.value = true // Пометить запрос как выполненный
+    } else {
+        // Ошибка при получении задач
+        // Здесь вы можете обновить UI, чтобы показать уведомление
     }
 }
 
@@ -81,16 +104,17 @@ private fun navigateToChats(navController: NavController) {
     navController.navigate("chats")
 }
 
-enum class TaskStatus {
-    COMPLETED, IN_PROGRESS, PENDING
+private fun navigateToWorkers(navController: NavController) {
+    navController.navigate("workers_list")
 }
 
 @Composable
-fun NavigationBar(
+fun NavigationInspectorBar(
     navController: NavController,
     onButton1Click: () -> Unit,
     onButton2Click: () -> Unit,
-    onButton3Click: () -> Unit
+    onButton3Click: () -> Unit,
+    onButton4Click: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -99,10 +123,7 @@ fun NavigationBar(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         IconButton(onClick = onButton1Click) {
-            Icon(
-                painter = painterResource(R.drawable.qr2),
-                contentDescription = "Кнопка 1"
-            )
+            Icon(Icons.Default.ArrowBack, contentDescription = "Кнопка 1")
         }
         IconButton(onClick = onButton2Click) {
             Icon(
@@ -116,13 +137,19 @@ fun NavigationBar(
                 contentDescription = "Кнопка 3"
             )
         }
+        IconButton(onClick = onButton4Click) {
+            Icon(
+                painter = painterResource(R.drawable.stats),
+                contentDescription = "Кнопка 4"
+            )
+        }
     }
 }
 
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TasksPage(navController: NavController) {
+fun TasksInspectorScreen(navController: NavController) {
     val tasks = remember { mutableStateListOf<Task>() }
     val isRequestCompleted = remember { mutableStateOf(false) }
 
@@ -131,19 +158,31 @@ fun TasksPage(navController: NavController) {
             fetchTasksFromServer(tasks, isRequestCompleted)
         }
     }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(text = "Задачи") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                }
             )
         },
         bottomBar = {
-            NavigationBar(
-                navController = navController,
-                onButton1Click = {},
-                onButton2Click = {},
-                onButton3Click = { navigateToChats(navController) }
-            )
+            Surface(
+                color = Color(0xFF3C3A3F),
+            ) {
+                NavigationInspectorBar(
+                    navController = navController,
+                    onButton1Click = {},
+                    onButton2Click = { /* Handle button 2 click */ },
+                    onButton3Click = { navigateToChats(navController) },
+                    onButton4Click = { navigateToWorkers(navController) }
+
+                )
+            }
         },
         content = { paddingValues ->
             Surface(color = Color(0xFF323034)) {
@@ -214,53 +253,4 @@ fun TasksPage(navController: NavController) {
             }
         }
     )
-}
-
-
-private suspend fun fetchTasksFromServer(
-    tasks: SnapshotStateList<Task>,
-    isRequestCompleted: MutableState<Boolean>
-) {
-    val uid = UserManager.user?.uid // Замените на фактический UID пользователя
-    val json = JSONObject().apply {
-        put("uid", uid)
-    }
-    val requestBody =
-        json.toString().toRequestBody("application/json".toMediaTypeOrNull())
-    val request = Request.Builder()
-        .url(MainActivity.ApiConfig.BASE_URL + "tasks/get")
-        .post(requestBody)
-        .build()
-
-    val client = OkHttpClient()
-    val response = withContext(Dispatchers.IO) {
-        client.newCall(request).execute()
-    }
-
-    if (response.isSuccessful) {
-        val responseBody = response.body?.string()
-        val jsonArray = JSONArray(responseBody)
-
-        for (i in 0 until jsonArray.length()) {
-            val jsonObject = jsonArray.getJSONObject(i)
-            val task = Task(
-                header = jsonObject.getString("header"),
-                priority = jsonObject.getString("priority"),
-                creator = jsonObject.getString("creator"),
-                creatorRole = jsonObject.getString("creatorRole"),
-                executor = jsonObject.getString("executor"),
-                executorRole = jsonObject.getString("executorRole"),
-                description = jsonObject.getString("description"),
-                deadlines = jsonObject.getString("deadlines"),
-                status = jsonObject.getString("status"),
-                uid = jsonObject.getInt("uid")
-            )
-            tasks.add(task)
-        }
-
-        isRequestCompleted.value = true // Пометить запрос как выполненный
-    } else {
-        // Ошибка при получении задач
-        // Здесь вы можете обновить UI, чтобы показать уведомление
-    }
 }
