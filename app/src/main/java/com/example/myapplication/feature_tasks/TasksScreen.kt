@@ -80,7 +80,9 @@ private fun navigateToTaskDescription(navController: NavController, taskId: Int)
 private fun navigateToChats(navController: NavController) {
     navController.navigate("chats")
 }
-
+private fun navigateToQr(navController: NavController) {
+    navController.navigate("qr")
+}
 enum class TaskStatus {
     COMPLETED, IN_PROGRESS, PENDING
 }
@@ -140,7 +142,7 @@ fun TasksPage(navController: NavController) {
         bottomBar = {
             NavigationBar(
                 navController = navController,
-                onButton1Click = {},
+                onButton1Click = {navigateToQr(navController)},
                 onButton2Click = {},
                 onButton3Click = { navigateToChats(navController) }
             )

@@ -108,6 +108,10 @@ private fun navigateToWorkers(navController: NavController) {
     navController.navigate("workers_list")
 }
 
+private fun navigateToQr(navController: NavController) {
+    navController.navigate("qr")
+}
+
 @Composable
 fun NavigationInspectorBar(
     navController: NavController,
@@ -123,7 +127,7 @@ fun NavigationInspectorBar(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         IconButton(onClick = onButton1Click) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Кнопка 1")
+            Icon(painter = painterResource(R.drawable.qr2), contentDescription = "Кнопка 1")
         }
         IconButton(onClick = onButton2Click) {
             Icon(
@@ -176,7 +180,7 @@ fun TasksInspectorScreen(navController: NavController) {
             ) {
                 NavigationInspectorBar(
                     navController = navController,
-                    onButton1Click = {},
+                    onButton1Click = { navigateToQr(navController) },
                     onButton2Click = { /* Handle button 2 click */ },
                     onButton3Click = { navigateToChats(navController) },
                     onButton4Click = { navigateToWorkers(navController) }

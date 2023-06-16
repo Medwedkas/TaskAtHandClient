@@ -51,8 +51,8 @@ data class UserListItem(
     val role: String
 )
 
-private fun navigateToStat(navController: NavController, uid: Int) {
-    navController.navigate("user_stat/${uid}}")
+private fun navigateToStat(uid: Int, navController: NavController) {
+    navController.navigate("user_stat/$uid")
 }
 
 
@@ -95,7 +95,7 @@ fun WorkersListPage(navController: NavController) {
                         .background(Color(0xFF323034))
                         .padding(bottom = 16.dp)
                         .clickable {
-                            navigateToStat(navController, user.uid)
+                            navigateToStat(user.uid, navController)
                         }
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {

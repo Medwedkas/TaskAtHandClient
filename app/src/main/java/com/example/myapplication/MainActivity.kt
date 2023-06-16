@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import QRScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -72,6 +73,9 @@ fun MyApp() {
         }
         composable("workers_list"){
             WorkersListPage(navController)
+        }
+        composable(route = "qr"){
+            QRScreen(navController)
         }
         composable(
             "taskDescription/{taskId}",
