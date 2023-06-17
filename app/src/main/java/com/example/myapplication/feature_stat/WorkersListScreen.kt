@@ -75,7 +75,7 @@ fun WorkersListPage(navController: NavController) {
     ) {
         TopAppBar(
             title = {
-                Text(text = "Описание задачи")
+                Text(text = "Список сотрудников")
             },
             navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {

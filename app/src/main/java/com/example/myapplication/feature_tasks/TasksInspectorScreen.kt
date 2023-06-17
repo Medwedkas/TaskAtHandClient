@@ -52,7 +52,7 @@ private suspend fun fetchTasksFromServer(
     tasks: SnapshotStateList<Task>,
     isRequestCompleted: MutableState<Boolean>
 ) {
-    val uid = UserManager.user?.uid // Замените на фактический UID пользователя
+    val uid = UserManager.user?.uid
     val json = JSONObject().apply {
         put("uid", uid)
     }
@@ -89,10 +89,7 @@ private suspend fun fetchTasksFromServer(
             tasks.add(task)
         }
 
-        isRequestCompleted.value = true // Пометить запрос как выполненный
-    } else {
-        // Ошибка при получении задач
-        // Здесь вы можете обновить UI, чтобы показать уведомление
+        isRequestCompleted.value = true
     }
 }
 

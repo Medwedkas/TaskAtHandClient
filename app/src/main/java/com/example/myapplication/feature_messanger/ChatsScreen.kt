@@ -185,7 +185,7 @@ fun ChatCard(chat: Chat, navController: NavController) {
 fun ChatsScreen(navController: NavController) {
     val chatList: MutableState<List<Chat>> = remember { mutableStateOf(emptyList()) }
     val users = remember { mutableStateListOf<User>() }
-    val isUsersRequestCompleted = remember { mutableStateOf(false) } // Флаг выполнения запроса
+    val isUsersRequestCompleted = remember { mutableStateOf(false) }
     var userExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {

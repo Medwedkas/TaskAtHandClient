@@ -77,16 +77,27 @@ fun LoginPage(navController: NavController) {
                 .padding(horizontal = 10.dp, vertical = 1.dp)
         ) {
             Image(
-                painter = painterResource(R.drawable.ic_launcher_foreground), // Путь к ресурсу с картинкой
+                painter = painterResource(R.drawable.ofice), // Путь к ресурсу с картинкой
                 contentDescription = "Logo",
                 modifier = Modifier
-                    .size(260.dp) // Размер квадратной картинки
+                    .size(195.dp) // Размер квадратной картинки
                     .align(Alignment.Center),
                 contentScale = ContentScale.Fit
             )
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "Офис в кармане",
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .background(color = Color(0xFF3C3A3F)),
+            fontSize = 45.sp,
+            color = Color(0xFF717379),
+        )
+
+        Spacer(modifier = Modifier.height(130.dp))
 
         Text(
             text = "Номер телефона:",

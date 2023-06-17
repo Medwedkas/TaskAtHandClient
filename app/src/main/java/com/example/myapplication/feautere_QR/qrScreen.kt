@@ -158,7 +158,6 @@ private suspend fun generateQRCode(userUid: Int): ImageBitmap? = withContext(Dis
                         val bitmap = runBlocking { generateQRCodeImage(qrCodeUrl) }
                         continuation.resume(bitmap, onCancellation = {})
                     } else {
-                        // Handle error: Unable to extract UID from the response
                         continuation.resume(null, onCancellation = {})
                     }
                 } ?: continuation.resume(null, onCancellation = {})
@@ -169,21 +168,17 @@ private suspend fun generateQRCode(userUid: Int): ImageBitmap? = withContext(Dis
 
 
 private fun extractUidFromResponse(responseBody: String): String? {
-    // Your logic to extract UID from responseBody
-    // Modify the following code according to your expected format and UID representation
-
-    // Example logic assuming responseBody contains a JSON with a "uid" field
     try {
         val json = JSONObject(responseBody)
         val uid = json.optString("uid")
         return if (uid.isNotEmpty()) {
-            uid // Return the extracted UID
+            uid
         } else {
-            null // Return null if UID is empty or not found
+            null
         }
     } catch (e: JSONException) {
         e.printStackTrace()
-        return null // Return null in case of JSON parsing error
+        return null
     }
 }
 
@@ -193,8 +188,8 @@ private fun generateQRCodeImage(qrCodeUrl: String): ImageBitmap? {
         val bitMatrix: BitMatrix = MultiFormatWriter().encode(
             qrCodeUrl,
             BarcodeFormat.QR_CODE,
-            300, // QR code width and height
-            300, // Adjust this value as per your requirement
+            300,
+            300,
             null
         )
         val width = bitMatrix.width
